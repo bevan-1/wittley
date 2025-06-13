@@ -3,6 +3,7 @@
 // IMPORTS
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
+import Link from "next/link";
 
 export default function Navbar() {
     // CONST
@@ -28,9 +29,9 @@ export default function Navbar() {
         <nav className="w-full bg-white border-b border-gray-200 shadow-md px-6 py-3 sticky top-0 z-50">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
                 {/* LOGO */}
-                <a href="/" className="text-3xl font-extrabold text-gray-900 tracking-tight hover:text-blue-600 transition-colors">
+                <Link href="/" className="text-3xl font-extrabold text-gray-900 tracking-tight hover:text-blue-600 transition-colors">
                     Wittley
-                </a>
+                </Link>
 
                 {/* NAV BUTTONS */}
                 {session ? (

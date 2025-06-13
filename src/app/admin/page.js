@@ -58,7 +58,7 @@ export default function AdminPanel() {
     if (!isAllowed) {
         return (
             <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-10 mb-8">
-                Nope. That's not for you.
+                Nope. That&apos;s not for you.
             </p>
         );
     }
