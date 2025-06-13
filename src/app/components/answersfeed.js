@@ -59,7 +59,7 @@ export default function AnswersFeed({ questionId }) {
         let voteAction;
 
         if (existingVote) {
-            if (existingVote.vote === voteValue) {
+            if (existingVote?.vote === voteValue) {
                 voteAction = await supabase
                     .from('answer_votes')
                     .delete()
@@ -75,7 +75,10 @@ export default function AnswersFeed({ questionId }) {
         } else {
             voteAction = await supabase
                 .from('answer_votes')
-                .insert({ user_id: userId, answer_id: answerId, vote: voteValue });
+                .upsert(
+                    { user_id: userId, answer_id: answerId, vote: voteValue },
+                    { onConflict: ['user_id', 'answer_id'] }
+                )
         }
 
         if (voteAction.error) {
@@ -179,20 +182,42 @@ export default function AnswersFeed({ questionId }) {
                             value={editedAnswer}
                             onChange={(e) => setEditedAnswer(e.target.value)}
                             className="w-full h-32 border rounded p-3 mb-4"
+                            maxLength={50}
                         />
+                        <p className="text-sm text-right text-gray-500 mb-4 italic">
+                            {editedAnswer.length}/50 characters
+                        </p>
+                        {feedback && (
+                            <p className="text-sm text-red-500 text-center mb-2">{feedback}</p>
+                        )}
                         <div className="flex justify-end gap-4">
                             <button
                                 onClick={async () => {
+                                    const trimmed = editedAnswer.trim();
+                                    if (!trimmed) {
+                                        setFeedback('Answer cannot be empty');
+                                        setTimeout(() => setFeedback(''), 3000);
+                                        return;
+                                    }
+                                    if (trimmed.length > 50) {
+                                        setFeedback('Answer must be 50 characters or less');
+                                        setTimeout(() => setFeedback(''), 3000); 
+                                        return;
+                                    }
+
                                     await supabase
                                         .from('answers')
                                         .update({ answer: editedAnswer })
                                         .eq('id', editingId);
+
                                     setEditingId(null);
+
                                     const { data } = await supabase
                                         .from('answers')
                                         .select('*')
                                         .eq('question_id', questionId)
                                         .order('score', { ascending: false });
+
                                     setAnswers(data || []);
                                 }}
                                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 cursor-pointer"

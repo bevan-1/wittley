@@ -6,6 +6,7 @@ import { supabase } from '../../../lib/supabase';
 
 // USERNAME PROMPT
 export default function UsernamePrompt() {
+    // CONSTS
     const [showPopup, setShowPopup] = useState(false);
     const [username, setUsername] = useState('');
     const [feedback, setFeedback] = useState('');
@@ -56,6 +57,15 @@ export default function UsernamePrompt() {
             setLoading(false);
             return;
         }
+
+            // RESERVED USERNAMES
+            const RESERVED_USERNAMES = ['admin', 'login', 'signup', 'about', 'api'];
+
+            if (RESERVED_USERNAMES.includes(trimmed)) {
+                setFeedback('Sorry. Need that name to function! Pick another.');
+                setLoading(false);
+                return;
+            }
 
         // UPDATE PROFILE
         const { error } = await supabase

@@ -8,21 +8,42 @@ import Link from "next/link";
 export default function Navbar() {
     // CONST
     const [session, setSession] = useState(null);
+    const [username, setUsername] = useState(null);
 
     // ADMIN UID
     const ADMIN_UID = '9cd12f12-a518-47f6-a5ea-3babc6ddc061';
 
     useEffect(() => {
-        const getSession = async () => {
-            const { data } = await supabase.auth.getSession();
-            setSession(data.session);
+        const init = async () => {
+            const { data: sessionData } = await supabase.auth.getSession();
+            const user = sessionData?.session?.user;
+
+            if (!user) {
+                setSession(null);
+                setUsername(null);
+                return;
+            }
+
+            setSession(sessionData.session);
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('id', user.id)
+                .single();
+            
+            if (profile?.username) {
+                setUsername(profile.username);
+            }
         };
-        getSession();
+
+        init();
     }, []);
 
     const handleLogin = async () => {
         await supabase.auth.signOut();
         setSession(null);
+        setUsername(null);
     };
 
     return (
@@ -37,27 +58,20 @@ export default function Navbar() {
                 {session ? (
                     <div className="flex items-center gap-6">
                         {session.user.id === ADMIN_UID && (
-                            <a
+                            <Link
                                 href="/admin"
                                 className="text-blue-600 hover:text-blue-800 font-semibold text-lg transition-colors"
                             >
                                 Admin
-                            </a>
+                            </Link>
                         )}
 
-                        <a
-                            href="/account"
+                        <Link
+                            href={`/${username}`}
                             className="text-gray-700 hover:text-gray-900 font-semibold text-lg transition-colors"
                         >
                             Profile
-                        </a>
-
-                        <button
-                            onClick={handleLogin}
-                            className="text-red-600 hover:text-red-800 font-semibold text-lg transition-colors"
-                        >
-                            Logout
-                        </button>
+                        </Link>
                     </div>
                 ) : (
                     <a
