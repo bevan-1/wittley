@@ -4,12 +4,14 @@
 import { useState } from "react";
 import { supabase } from "../../../lib/supabase";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Signup({ onClose }) {
     const [step, setStep] = useState(1);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [feedback, setFeedback] = useState('');
 
     const [loading, setLoading] = useState(false);
@@ -20,6 +22,12 @@ export default function Signup({ onClose }) {
     const handleSignup = async () => {
         setFeedback('');
         setLoading(true);
+
+        if (!agreedToTerms) {
+            setFeedback("You must agree to the Terms of Service to create an account.");
+            setLoading(false);
+            return;
+        }
 
         if (password !== confirmPassword){
             setFeedback('Passwords do not match.');
@@ -78,6 +86,26 @@ export default function Signup({ onClose }) {
                             placeholder="Confirm Password"
                             onChange={(e) => setConfirmPassword(e.target.value)}
                         />
+
+                        {/* TOS */}
+                        <label className="flex items-start mb-4 space-x-2 text-sm">
+                            <input
+                                type="checkbox"
+                                checked={agreedToTerms}
+                                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                                className="mt-1 cursor-pointer"
+                            />
+                            <span className="cursor-pointer">
+                                By creating an account, you agree to our{' '}
+                                <Link
+                                    href="/terms"
+                                    className="text-blue-600 underline"
+                                >
+                                    Terms of Service
+                                </Link>.
+                            </span>
+                        </label>
+
                         <button 
                             onClick={handleSignup}
                             className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-500 transition cursor-pointer"

@@ -58,14 +58,14 @@ export default function UsernamePrompt() {
             return;
         }
 
-            // RESERVED USERNAMES
-            const RESERVED_USERNAMES = ['admin', 'login', 'signup', 'about', 'api'];
+        // RESERVED USERNAMES
+        const RESERVED_USERNAMES = ['admin', 'login', 'signup', 'about', 'api', 'terms', 'privacy', 'demo', 'settings'];
 
-            if (RESERVED_USERNAMES.includes(trimmed)) {
-                setFeedback('Sorry. Need that name to function! Pick another.');
-                setLoading(false);
-                return;
-            }
+        if (RESERVED_USERNAMES.includes(trimmed)) {
+            setFeedback('Sorry. Need that name to function! Pick another.');
+            setLoading(false);
+            return;
+        }
 
         // UPDATE PROFILE
         const { error } = await supabase

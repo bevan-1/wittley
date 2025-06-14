@@ -4,6 +4,7 @@ import "./globals.css";
 // COMPONENT IMPORTS
 import Navbar from "./components/navbar";
 import UsernamePrompt from "./components/usernameprompt";
+import Footer from "./components/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({ children }) {
         <Navbar />
         <UsernamePrompt />
         {children}
+        <Footer />
       </body>
     </html>
   );
