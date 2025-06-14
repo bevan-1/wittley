@@ -32,7 +32,7 @@ export default function Home() {
   useEffect(() => {
     if (!question) return;
 
-    setDisplayedText(''); //RESET THE ANIMATED TEXT WHEN QUESTION CHANGES
+    setDisplayedText('');
     let i = 0;
 
     const interval = setInterval(() => {
@@ -65,7 +65,7 @@ export default function Home() {
   useEffect(() => {
     const fetchQuestion = async () => {
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('questions')
         .select('*')
         .eq('date_posted', today)
@@ -83,18 +83,13 @@ export default function Home() {
 
   // CHECK IF USER HAS ALREADY SUBMITTED AN ANSWER
   const checkIfAlreadySubmitted = async (uid) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('answers')
       .select('created_at, question_id')
       .eq('user_id', uid);
 
-    const today = new Date().toDateString();
-
     const submittedToday = data?.some((a) => a.question_id === questionId);
-
-    if (submittedToday) {
-      setHasSubmitted(true);
-    }
+    if (submittedToday) setHasSubmitted(true);
   };
 
   // FETCH ALL ANSWERS
@@ -103,7 +98,7 @@ export default function Home() {
       const { data: sessionData } = await supabase.auth.getSession();
       const userId = sessionData?.session?.user?.id;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('answers')
         .select('id, answer, created_at, likes, dislikes, score, user_id')
         .order('score', { ascending: false })
@@ -152,31 +147,30 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-white text-black flex flex-col items-center justify-start p-6">
+    <main className="min-h-screen bg-lavender flex flex-col items-center justify-start p-6 md:p-10 lg:px-24 font-sans">
+
       {/* TODAY'S QUESTION */}
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-10 mb-8">
+      <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-center text-gunmetal mt-10 mb-6">
         {displayedText}
-        <span
-          className={`inline-block w-[1ch] ${done ? 'animate-blink' : ''}`}
-        >
+        <span className={`inline-block w-[1ch] ${done ? 'animate-blink' : ''}`}>
           |
         </span>
       </h1>
 
       {/* ANSWER INPUT */}
       {!hasSubmitted && (
-        <div className={`flex w-full max-w-2xl items-center space-x-2 mb-2 transition-all duration-700 ease-in-out ${submitted ? 'opacity-0 translate-x-[-100%]' : ''}`}>
+        <div className={`flex w-full max-w-2xl items-center space-x-3 mb-1 transition-all duration-700 ease-in-out ${submitted ? 'opacity-0 translate-x-[-100%]' : ''}`}>
           <input
             type="text"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             placeholder="Type your answer here..."
             maxLength={maxChars}
-            className="flex-1 rounded-full bg-neutral-300 text-black placeholder-neutral-500 px-4 py-3 text-base outline-none focus:ring-2 focus:ring-blue-400 transition-shadow duration-300"
+            className="flex-1 rounded-full bg-platinum text-gunmetal placeholder:text-frenchgray px-5 py-3 text-base outline-none focus:ring-2 focus:ring-uranian transition-all duration-300 shadow-sm hover:shadow-md"
           />
           <button
             onClick={handleSubmit}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-3 rounded-full transition cursor-pointer"
+            className="bg-uranian hover:bg-[#A1C3FF] text-gunmetal font-semibold px-6 py-3 rounded-full transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] cursor-pointer"
           >
             Submit
           </button>
@@ -185,7 +179,7 @@ export default function Home() {
 
       {/* CHARACTER COUNTER */}
       {!hasSubmitted && (
-        <div className="w-full max-w-2xl text-right text-xs text-gray-500 mb-6 italic">
+        <div className="w-full max-w-2xl text-right text-[11px] text-gunmetal/60 mb-6 italic pr-2">
           {answer.length}/{maxChars} characters
         </div>
       )}
@@ -193,19 +187,19 @@ export default function Home() {
       {/* SUBMITTED */}
       {submitted && (
         <div className="animate-fadeIn text-xl font-semibold text-green-600 mb-4">
-          Answer Submitted!
+          ✅ Answer Submitted!
         </div>
       )}
 
       {/* FEEDBACK MESSAGE */}
       {feedback && (
-        <p className="text-sm text-gray-700 mb-6">{feedback}</p>
+        <p className="text-sm font-medium text-frenchgray mb-6">
+          {feedback}
+        </p>
       )}
 
       {/* ANSWER FEED */}
-      <>
-        <AnswersFeed questionId={questionId} />
-      </>
+      <AnswersFeed questionId={questionId} />
     </main>
   );
 }

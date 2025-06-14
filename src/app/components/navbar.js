@@ -47,10 +47,14 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="w-full bg-white border-b border-gray-200 shadow-md px-6 py-3 sticky top-0 z-50">
+        <nav className="w-full bg-gunmetal text-lavender shadow-md px-6 py-4 sticky top-0 z-50 border-b border-frenchgray">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
+
                 {/* LOGO */}
-                <Link href="/" className="text-3xl font-extrabold text-gray-900 tracking-tight hover:text-blue-600 transition-colors">
+                <Link 
+                    href="/" 
+                    className="text-3xl font-extrabold tracking-tight hover:text-uranian transition-colors"
+                >
                     Wittley
                 </Link>
 
@@ -60,7 +64,7 @@ export default function Navbar() {
                         {session.user.id === ADMIN_UID && (
                             <Link
                                 href="/admin"
-                                className="text-blue-600 hover:text-blue-800 font-semibold text-lg transition-colors"
+                                className="text-uranian hover:text-white font-medium text-lg transition-colors"
                             >
                                 Admin
                             </Link>
@@ -68,7 +72,7 @@ export default function Navbar() {
 
                         <Link
                             href={`/${username}`}
-                            className="text-gray-700 hover:text-gray-900 font-semibold text-lg transition-colors"
+                            className="text-lavender hover:text-white font-medium text-lg transition-colors"
                         >
                             Profile
                         </Link>
@@ -76,7 +80,7 @@ export default function Navbar() {
                 ) : (
                     <a
                         href="/login"
-                        className="text-blue-600 hover:text-blue-800 font-semibold text-lg transition-colors"
+                        className="text-uranian hover:text-white font-medium text-lg transition-colors"
                     >
                         Login
                     </a>

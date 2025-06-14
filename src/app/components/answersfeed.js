@@ -3,52 +3,43 @@
 // IMPORTS
 import { useEffect, useState } from "react";
 import { supabase } from "/lib/supabase";
+import CommentPopup from "./comments";
 
 // ANSWER FEED
 export default function AnswersFeed({ questionId }) {
-    // ADMIN UID
     const ADMIN_UID = '9cd12f12-a518-47f6-a5ea-3babc6ddc061';
-
-    // CONSTS
     const [answers, setAnswers] = useState([]);
     const [userId, setUserId] = useState(null);
     const [feedback, setFeedback] = useState('');
-
-    // EDITING
     const [editingId, setEditingId] = useState(null);
     const [editedAnswer, setEditedAnswer] = useState('');
-
-    // DELETE CONFIRM
     const [showConfirm, setShowConfirm] = useState(false);
     const [toDeleteId, setToDeleteId] = useState(null);
     const [toDeleteAnswer, setToDeleteAnswer] = useState('');
+    const [commentingAnswer, setCommentingAnswer] = useState(null);
 
-    // FETCH ON LOAD
     useEffect(() => {
+        if (!questionId) return;
         const fetchAnswers = async () => {
             const sessionRes = await supabase.auth.getSession();
             const uid = sessionRes.data?.session?.user?.id;
             setUserId(uid);
-
             const { data } = await supabase
                 .from('answers')
                 .select('id, answer, created_at, likes, dislikes, score, user_id')
                 .eq('question_id', questionId)
                 .order('score', { ascending: false })
                 .order('created_at', { ascending: false });
-
             setAnswers(data || []);
         };
         fetchAnswers();
     }, [questionId]);
 
-    // VOTE HANDLER
     const handleVote = async (answerId, voteValue) => {
         if (!userId) {
             setFeedback('Please log in to vote.');
             return;
         }
-
         const { data: existingVote } = await supabase
             .from('answer_votes')
             .select('vote')
@@ -57,7 +48,6 @@ export default function AnswersFeed({ questionId }) {
             .single();
 
         let voteAction;
-
         if (existingVote) {
             if (existingVote?.vote === voteValue) {
                 voteAction = await supabase
@@ -78,7 +68,7 @@ export default function AnswersFeed({ questionId }) {
                 .upsert(
                     { user_id: userId, answer_id: answerId, vote: voteValue },
                     { onConflict: ['user_id', 'answer_id'] }
-                )
+                );
         }
 
         if (voteAction.error) {
@@ -98,48 +88,27 @@ export default function AnswersFeed({ questionId }) {
 
     return (
         <div className="w-full max-w-7xl mt-12 mx-auto px-4">
-            {/* FEEDBACK */}
             {feedback && (
                 <p className="text-sm text-red-500 mb-4 text-center">{feedback}</p>
             )}
-
-            {/* HEADING */}
-            <h2 className="text-2xl font-bold mb-6 text-center">Answers</h2>
-
-            {/* ANSWERS */}
+            <h2 className="text-2xl text-gunmetal font-bold mb-6 text-center">Answers</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {answers.length === 0 ? (
-                    <p className="text-gray-400 italic text-center col-span-full">
-                        No answers yet.
-                    </p>
+                    <p className="text-gray-400 italic text-center col-span-full">No answers yet.</p>
                 ) : (
                     answers.map((a) => (
                         <div
+                            onClick={() => setCommentingAnswer(a)}
                             key={a.id}
-                            className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all"
+                            className="bg-white border border-frenchgray rounded-xl p-4 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
                         >
-                            <p className="text-base text-gray-900 mb-3">{a.answer}</p>
-                            <div className="text-sm text-gray-500 flex justify-between items-center">
-                                <span>
-                                    {new Date(a.created_at).toLocaleTimeString([], {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    })}
-                                </span>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => handleVote(a.id, 1)}
-                                        className="hover:scale-110 transition text-green-600 cursor-pointer"
-                                    >
-                                        👍
-                                    </button>
+                            <p className="text-base font-medium text-gunmetal mb-4">{a.answer}</p>
+                            <div className="text-xs text-frenchgray flex justify-between items-center">
+                                <span>{new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <div className="flex items-center gap-3 text-gunmetal">
+                                    <button onClick={() => handleVote(a.id, 1)} className="hover:scale-110 transition">👍</button>
                                     <span>{a.likes || 0}</span>
-                                    <button
-                                        onClick={() => handleVote(a.id, -1)}
-                                        className="hover:scale-110 transition text-red-500 cursor-pointer"
-                                    >
-                                        👎
-                                    </button>
+                                    <button onClick={() => handleVote(a.id, -1)} className="hover:scale-110 transition">👎</button>
                                     <span>{a.dislikes || 0}</span>
                                     {(userId === a.user_id || userId === ADMIN_UID) && (
                                         <>
@@ -149,7 +118,7 @@ export default function AnswersFeed({ questionId }) {
                                                         setEditingId(a.id);
                                                         setEditedAnswer(a.answer);
                                                     }}
-                                                    className="text-blue-500 font-medium cursor-pointer"
+                                                    className="text-blue-500 font-medium"
                                                 >
                                                     Edit
                                                 </button>
@@ -160,7 +129,7 @@ export default function AnswersFeed({ questionId }) {
                                                     setToDeleteAnswer(a.answer);
                                                     setShowConfirm(true);
                                                 }}
-                                                className="text-red-500 font-medium cursor-pointer"
+                                                className="text-red-500 font-medium"
                                             >
                                                 Delete
                                             </button>
@@ -172,8 +141,6 @@ export default function AnswersFeed({ questionId }) {
                     ))
                 )}
             </div>
-
-            {/* EDIT POPUP */}
             {editingId && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl">
@@ -181,7 +148,7 @@ export default function AnswersFeed({ questionId }) {
                         <textarea
                             value={editedAnswer}
                             onChange={(e) => setEditedAnswer(e.target.value)}
-                            className="w-full h-32 border rounded p-3 mb-4"
+                            className="w-full h-32 border border-frenchgray rounded p-3 mb-4"
                             maxLength={50}
                         />
                         <p className="text-sm text-right text-gray-500 mb-4 italic">
@@ -201,23 +168,12 @@ export default function AnswersFeed({ questionId }) {
                                     }
                                     if (trimmed.length > 50) {
                                         setFeedback('Answer must be 50 characters or less');
-                                        setTimeout(() => setFeedback(''), 3000); 
+                                        setTimeout(() => setFeedback(''), 3000);
                                         return;
                                     }
-
-                                    await supabase
-                                        .from('answers')
-                                        .update({ answer: editedAnswer })
-                                        .eq('id', editingId);
-
+                                    await supabase.from('answers').update({ answer: editedAnswer }).eq('id', editingId);
                                     setEditingId(null);
-
-                                    const { data } = await supabase
-                                        .from('answers')
-                                        .select('*')
-                                        .eq('question_id', questionId)
-                                        .order('score', { ascending: false });
-
+                                    const { data } = await supabase.from('answers').select('*').eq('question_id', questionId).order('score', { ascending: false });
                                     setAnswers(data || []);
                                 }}
                                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 cursor-pointer"
@@ -234,8 +190,6 @@ export default function AnswersFeed({ questionId }) {
                     </div>
                 </div>
             )}
-
-            {/* DELETE CONFIRM POPUP */}
             {showConfirm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md text-center">
@@ -248,13 +202,8 @@ export default function AnswersFeed({ questionId }) {
                         <div className="flex justify-center gap-4">
                             <button
                                 onClick={async () => {
-                                    await supabase
-                                        .from('answers')
-                                        .delete()
-                                        .eq('id', toDeleteId);
-                                    setAnswers((prev) =>
-                                        prev.filter((ans) => ans.id !== toDeleteId)
-                                    );
+                                    await supabase.from('answers').delete().eq('id', toDeleteId);
+                                    setAnswers((prev) => prev.filter((ans) => ans.id !== toDeleteId));
                                     setShowConfirm(false);
                                 }}
                                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 cursor-pointer"
@@ -270,6 +219,12 @@ export default function AnswersFeed({ questionId }) {
                         </div>
                     </div>
                 </div>
+            )}
+            {commentingAnswer && (
+                <CommentPopup
+                    answer={commentingAnswer}
+                    onClose={() => setCommentingAnswer(null)}
+                />
             )}
         </div>
     );

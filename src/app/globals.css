@@ -4,9 +4,31 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #EAE8FF;
+  --foreground: #2D3142;
 }
+
+/* styles/global.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .bg-lavender { background-color: #EAE8FF; }
+  .bg-platinum { background-color: #D8D5DB; }
+  .bg-frenchgray { background-color: #ADACB5; }
+  .bg-gunmetal { background-color: #2D3142; }
+  .bg-uranian { background-color: #B0D7FF; }
+
+  .text-lavender { color: #EAE8FF; }
+  .text-platinum { color: #D8D5DB; }
+  .text-frenchgray { color: #ADACB5; }
+  .text-gunmetal { color: #2D3142; }
+  .text-uranian { color: #B0D7FF; }
+
+  .border-frenchgray { border-color: #ADACB5; }
+}
+
 
 @theme inline {
   --color-background: var(--background);
@@ -17,8 +39,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: white;
-    --foreground: black;
+    --background: #EAE8FF;
+    --foreground: #2D3142;
   }
 }
 
