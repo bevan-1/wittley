@@ -14,21 +14,21 @@
 @tailwind utilities;
 
 @layer utilities {
-  .bg-lavender { background-color: #EAE8FF; }
-  .bg-platinum { background-color: #D8D5DB; }
-  .bg-frenchgray { background-color: #ADACB5; }
-  .bg-gunmetal { background-color: #2D3142; }
-  .bg-uranian { background-color: #B0D7FF; }
+  .bg-lavender { background-color: #F9FAFB; }
+  .bg-platinum { background-color: #E5E7EB; }
+  .bg-frenchgray { background-color: #9CA3AF; }
+  .bg-gunmetal { background-color: #111827; }
+  .bg-uranian { background-color: #5B9BFF; }
 
-  .text-lavender { color: #EAE8FF; }
-  .text-platinum { color: #D8D5DB; }
-  .text-frenchgray { color: #ADACB5; }
-  .text-gunmetal { color: #2D3142; }
-  .text-uranian { color: #B0D7FF; }
+  .text-lavender { color: #F9FAFB; }
+  .text-platinum { color: #E5E7EB; }
+  .text-frenchgray { color: #9CA3AF; }
+  .text-gunmetal { color: #111827; }
+  .text-uranian { color: #5B9BFF; }
 
-  .border-frenchgray { border-color: #ADACB5; }
+  .border-frenchgray { border-color: #9CA3AF; }
 }
-
+  
 
 @theme inline {
   --color-background: var(--background);

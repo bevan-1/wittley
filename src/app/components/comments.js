@@ -104,7 +104,7 @@ export default function CommentPopup({ answer, onClose }) {
                             <div
                                 key={c.id}
                                 className="bg-[#F8F8F8] border border-gray-200 p-3 rounded-xl text-sm text-gunmetal shadow-sm"
-                            >
+                            >``
                                 {c.comment}
                             </div>
                         ))
