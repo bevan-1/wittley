@@ -59,7 +59,7 @@ export default function CommentPopup({ answer, onClose }) {
                 {/* CLOSE BUTTON */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl font-bold"
+                    className="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl font-bold cursor-pointer"
                 >
                     &times;
                 </button>
@@ -84,7 +84,7 @@ export default function CommentPopup({ answer, onClose }) {
                         />
                         <button
                             type="submit"
-                            className="bg-uranian hover:bg-[#A1C3FF] text-white font-semibold text-sm px-5 py-2 rounded-full shadow transition"
+                            className="bg-uranian hover:bg-[#A1C3FF] text-white font-semibold text-sm px-5 py-2 rounded-full shadow transition cursor-pointer"
                         >
                             Post
                         </button>

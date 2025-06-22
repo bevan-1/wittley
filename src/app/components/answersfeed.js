@@ -4,12 +4,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "/lib/supabase";
 import CommentPopup from "./comments";
+import { RefreshCcw } from "lucide-react";
 
 // ANSWER FEED
-export default function AnswersFeed({ questionId }) {
-    const ADMIN_UID = '9cd12f12-a518-47f6-a5ea-3babc6ddc061';
-    const [answers, setAnswers] = useState([]);
-    const [userId, setUserId] = useState(null);
+export default function AnswersFeed({ questionId, onRefresh, answers, userId }) {
     const [feedback, setFeedback] = useState('');
     const [editingId, setEditingId] = useState(null);
     const [editedAnswer, setEditedAnswer] = useState('');
@@ -18,22 +16,15 @@ export default function AnswersFeed({ questionId }) {
     const [toDeleteAnswer, setToDeleteAnswer] = useState('');
     const [commentingAnswer, setCommentingAnswer] = useState(null);
 
-    useEffect(() => {
-        if (!questionId) return;
-        const fetchAnswers = async () => {
-            const sessionRes = await supabase.auth.getSession();
-            const uid = sessionRes.data?.session?.user?.id;
-            setUserId(uid);
-            const { data } = await supabase
-                .from('answers')
-                .select('id, answer, created_at, likes, dislikes, score, user_id')
-                .eq('question_id', questionId)
-                .order('score', { ascending: false })
-                .order('created_at', { ascending: false });
-            setAnswers(data || []);
-        };
-        fetchAnswers();
-    }, [questionId]);
+    // ADMIN UID
+    const ADMIN_UID = '9cd12f12-a518-47f6-a5ea-3babc6ddc061';
+
+    const fetchAnswers = async () => {
+        const sessionRes = await supabase.auth.getSession();
+        const uid = sessionRes.data?.session?.user?.id;
+        setUserId(uid);
+        onRefresh();
+    };
 
     const handleVote = async (answerId, voteValue) => {
         if (!userId) {
@@ -76,14 +67,7 @@ export default function AnswersFeed({ questionId }) {
             return;
         }
 
-        const { data } = await supabase
-            .from('answers')
-            .select('id, answer, created_at, likes, dislikes, score, user_id')
-            .eq('question_id', questionId)
-            .order('score', { ascending: false })
-            .order('created_at', { ascending: false });
-
-        setAnswers(data || []);
+        onRefresh();
     };
 
     return (
@@ -91,7 +75,18 @@ export default function AnswersFeed({ questionId }) {
             {feedback && (
                 <p className="text-sm text-red-500 mb-4 text-center">{feedback}</p>
             )}
+            {/* ANSWERS */}
             <h2 className="text-2xl text-gunmetal font-bold mb-6 text-center">Answers</h2>
+            {/* REFRESH ANSWERS */}
+            <div className="flex mb-6">
+                <button
+                    onClick={fetchAnswers}
+                    className="bg-uranian text-gunmetal font-semibold px-4 py-2 rounded-full shadow-sm hover:shadow-md hover:bg-[#A1C3FF] transition cursor-pointer"
+                >
+                    🔄 Refresh Answers
+                </button>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {answers.length === 0 ? (
                     <p className="text-gray-400 italic text-center col-span-full">No answers yet.</p>
@@ -141,6 +136,8 @@ export default function AnswersFeed({ questionId }) {
                     ))
                 )}
             </div>
+            
+            {/* EDITING */}
             {editingId && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl">
@@ -174,7 +171,7 @@ export default function AnswersFeed({ questionId }) {
                                     await supabase.from('answers').update({ answer: editedAnswer }).eq('id', editingId);
                                     setEditingId(null);
                                     const { data } = await supabase.from('answers').select('*').eq('question_id', questionId).order('score', { ascending: false });
-                                    setAnswers(data || []);
+                                    onRefresh();
                                 }}
                                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 cursor-pointer"
                             >
@@ -190,6 +187,8 @@ export default function AnswersFeed({ questionId }) {
                     </div>
                 </div>
             )}
+
+            {/* CONFIRM DELETE */}
             {showConfirm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md text-center">
@@ -203,7 +202,7 @@ export default function AnswersFeed({ questionId }) {
                             <button
                                 onClick={async () => {
                                     await supabase.from('answers').delete().eq('id', toDeleteId);
-                                    setAnswers((prev) => prev.filter((ans) => ans.id !== toDeleteId));
+                                    onRefresh((prev) => prev.filter((ans) => ans.id !== toDeleteId));
                                     setShowConfirm(false);
                                 }}
                                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 cursor-pointer"
@@ -220,6 +219,8 @@ export default function AnswersFeed({ questionId }) {
                     </div>
                 </div>
             )}
+
+            {/* COMMENTING */}
             {commentingAnswer && (
                 <CommentPopup
                     answer={commentingAnswer}

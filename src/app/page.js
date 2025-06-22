@@ -65,18 +65,18 @@ export default function Home() {
   useEffect(() => {
     const fetchQuestion = async () => {
       const today = new Date().toISOString().split('T')[0];
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('questions')
         .select('*')
         .eq('date_posted', today)
-        .single();
+        .limit(1);
 
-      if (data) {
-        setQuestion(data.question);
-        setQuestionId(data.id);
-      } else {
-        setQuestion('Why is there no question for today? Answer: a bug.');
-      }
+        if (error || !data || data.length === 0) {
+          setQuestion('Why is there no question for today? Answer: a bug');
+        } else {
+          setQuestion(data[0].question);
+          setQuestionId(data[0].id);
+        }
     };
     fetchQuestion();
   }, []);
@@ -93,14 +93,14 @@ export default function Home() {
   };
 
   // FETCH ALL ANSWERS
-  useEffect(() => {
-    const fetchAnswers = async () => {
+  const fetchAnswers = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
       const userId = sessionData?.session?.user?.id;
 
       const { data } = await supabase
         .from('answers')
         .select('id, answer, created_at, likes, dislikes, score, user_id')
+        .eq('question_id', questionId)
         .order('score', { ascending: false })
         .order('created_at', { ascending: false });
 
@@ -109,8 +109,11 @@ export default function Home() {
         setUserId(userId);
       }
     }
+
+  useEffect(() => {
+    if (!questionId) return
     fetchAnswers();
-  }, []);
+  }, [questionId]);
 
   // SUBMIT HANDLER
   const handleSubmit = async () => {
@@ -143,8 +146,10 @@ export default function Home() {
       setAnswer('');
       setHasSubmitted(true);
       setSubmitted(true);
+      fetchAnswers();
     }
   };
+
 
   return (
     <main className="min-h-screen bg-lavender flex flex-col items-center justify-start p-6 md:p-10 lg:px-24 font-sans">
@@ -164,6 +169,12 @@ export default function Home() {
             type="text"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
             placeholder="Type your answer here..."
             maxLength={maxChars}
             className="flex-1 rounded-full bg-platinum text-gunmetal placeholder:text-frenchgray px-5 py-3 text-base outline-none focus:ring-2 focus:ring-uranian transition-all duration-300 shadow-sm hover:shadow-md"
@@ -199,7 +210,12 @@ export default function Home() {
       )}
 
       {/* ANSWER FEED */}
-      <AnswersFeed questionId={questionId} />
+      <AnswersFeed 
+        questionId={questionId}
+        onRefresh={fetchAnswers}
+        answers={answers}
+        userId={userId}
+      />
     </main>
   );
 }
