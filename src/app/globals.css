@@ -14,21 +14,25 @@
 @tailwind utilities;
 
 @layer utilities {
-  .bg-lavender { background-color: #F9FAFB; }
-  .bg-platinum { background-color: #E5E7EB; }
-  .bg-frenchgray { background-color: #9CA3AF; }
-  .bg-gunmetal { background-color: #111827; }
-  .bg-uranian { background-color: #5B9BFF; }
+  /* BACKGROUND COLORS */
+  .bg-lavender   { background-color: #F8F8F8; }  /* Cloud White */
+  .bg-platinum   { background-color: #FFD331; }  /* Sunburst Yellow */
+  .bg-frenchgray { background-color: #1C1C1C; }  /* Jet Black */
+  .bg-gunmetal   { background-color: #1C1C1C; }  /* Jet Black */
+  .bg-uranian    { background-color: #1C6EE6; }  /* Comic Blue */
 
-  .text-lavender { color: #F9FAFB; }
-  .text-platinum { color: #E5E7EB; }
-  .text-frenchgray { color: #9CA3AF; }
-  .text-gunmetal { color: #111827; }
-  .text-uranian { color: #5B9BFF; }
+  /* TEXT COLORS */
+  .text-lavender   { color: #F8F8F8; }   /* Cloud White */
+  .text-platinum   { color: #FFD331; }   /* Sunburst Yellow */
+  .text-frenchgray { color: #1C1C1C; }   /* Jet Black */
+  .text-gunmetal   { color: #1C1C1C; }   /* Jet Black */
+  .text-uranian    { color: #1C6EE6; }   /* Comic Blue */
 
-  .border-frenchgray { border-color: #9CA3AF; }
+  /* BORDER COLORS */
+  .border-frenchgray { border-color: #1C1C1C; } /* Jet Black */
+  .border-gunmetal   { border-color: #1C1C1C; } /* Jet Black */
+  .border-uranian    { border-color: #1C6EE6; } /* Comic Blue */
 }
-  
 
 @theme inline {
   --color-background: var(--background);

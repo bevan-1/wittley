@@ -18,12 +18,49 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "Wittley",
-  description: "Questions no one asked for. Answers that you didn't see coming. Everyday.",
+  description: "Get your daily dose of fun, and thought-provoking questions! Answer, comment, and interact with the community in the Wittleverse! New question every day!",
+  metadataBase: new URL("https://wittley.com/"),
+  openGraph: {
+    title: "Wittley",
+    description: "Get your daily dose of fun, and thought-provoking questions! Answer, comment, and interact with the community in the Wittleverse! New question every day!",
+    url: "https://wittley.com/",
+    siteName: "Wittley",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Wittley Social Preview",
+      }
+    ],
+    locale: "en_AU",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Wittley",
+    description: "Get your daily dose of fun, and thought-provoking questions! Answer, comment, and interact with the community in the Wittleverse! New question every day!",
+    images: ["/og.png"],
+    creator: "@wittleydaily",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  themeColor: "#FFD331", // Sunburst Yellow
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="canonical" href="https://wittley.com" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

@@ -19,10 +19,14 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
     // ADMIN UID
     const ADMIN_UID = '9cd12f12-a518-47f6-a5ea-3babc6ddc061';
 
+    // TOP 3 ANSWERS
+    const topThree = Array.isArray(answers) ? answers.slice(0, 3) : [];
+    const rest = Array.isArray(answers) ? answers.slice(3) : [];
+    const [showAll, setShowAll] = useState(false);
+
     const fetchAnswers = async () => {
         const sessionRes = await supabase.auth.getSession();
         const uid = sessionRes.data?.session?.user?.id;
-        setUserId(uid);
         onRefresh();
     };
 
@@ -77,6 +81,7 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
             )}
             {/* ANSWERS */}
             <h2 className="text-2xl text-gunmetal font-bold mb-6 text-center">Answers</h2>
+
             {/* REFRESH ANSWERS */}
             <div className="flex mb-6">
                 <button
@@ -87,37 +92,72 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {answers.length === 0 ? (
-                    <p className="text-gray-400 italic text-center col-span-full">No answers yet.</p>
-                ) : (
-                    answers.map((a) => (
-                        <div
-                            onClick={() => setCommentingAnswer(a)}
-                            key={a.id}
-                            className="bg-white border border-frenchgray rounded-xl p-4 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
-                        >
-                            <p className="text-base font-medium text-gunmetal mb-4">{a.answer}</p>
-                            <div className="text-xs text-frenchgray flex justify-between items-center">
-                                <span>{new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                <div className="flex items-center gap-3 text-gunmetal">
-                                    <button onClick={() => handleVote(a.id, 1)} className="hover:scale-110 transition">👍</button>
-                                    <span>{a.likes || 0}</span>
-                                    <button onClick={() => handleVote(a.id, -1)} className="hover:scale-110 transition">👎</button>
-                                    <span>{a.dislikes || 0}</span>
-                                    {(userId === a.user_id || userId === ADMIN_UID) && (
-                                        <>
-                                            {userId === a.user_id && (
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingId(a.id);
-                                                        setEditedAnswer(a.answer);
-                                                    }}
-                                                    className="text-blue-500 font-medium"
-                                                >
-                                                    Edit
-                                                </button>
-                                            )}
+            {/* TOP 3 ANSWERS */}
+            {topThree.length > 0 && (
+                <>
+                    <h3 className="text-xl font-bold text-center mb-4 text-uranian">Top Answers</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+                        {topThree.map((a) => (
+                            <div
+                                key={a.id}
+                                onClick={() => setCommentingAnswer(a)}
+                                className="bg-white border border-uranian rounded-xl p-4 shadow-lg hover:scale-[1.02] transition-all cursor-pointer"
+                            >
+                                <p className="text-base font-medium text-gunmetal mg-4">{a.answer}</p>
+                                <div className="text-xs text-frenchgray flex justify-between items-center">
+                                    <span>{new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    <div className="flex items-center gap-3 text-gunmental">
+                                        <button onClick={() => handleVote(a.id, 1)} className="hover:scale-110 transition">👍</button>
+                                        <span>{a.likes || 0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+
+            {!showAll && rest.length > 0 && (
+                <div className="text-center my-6">
+                    <button
+                        onClick={() => setShowAll(true)}
+                        className="bg-platinum hover:bg:yellow-400 text-gunmetal font-semibold px-6 py-3 rounded-full transition-full transiton-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
+                    >
+                        Show More Answers
+                    </button>
+                </div>
+            )}
+
+            {/* REST OF ANSWERS */}
+            {showAll && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {rest.map((a) => (
+                    <div
+                        key={a.id}
+                        onClick={() => setCommentingAnswer(a)}
+                        className="bg-white border border-frenchgray rounded-xl p-4 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
+                    >
+                        <p className="text-base font-medium text-gunmetal mb-4">{a.answer}</p>
+                        <div className="text-xs text-frenchgray flex justify-between items-center">
+                            <span>{new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <div className="flex items-center gap-3 text-gunmetal">
+                                <button onClick={() => handleVote(a.id, 1)} className="hover:scale-110 transition">👍</button>
+                                <span>{a.likes || 0}</span>
+                                <button onClick={() => handleVote(a.id, -1)} className="hover:scale-110 transition">👎</button>
+                                <span>{a.dislikes || 0}</span>
+                                {(userId === a.user_id || userId === ADMIN_UID) && (
+                                    <>
+                                        {userId === a.user_id && (
+                                            <button
+                                                onClick={() => {
+                                                    setEditingId(a.id);
+                                                    setEditedAnswer(a.answer);
+                                                }}
+                                                className="text-blue-500 font-medium"
+                                            >
+                                                Edit
+                                            </button>
+                                        )}
                                             <button
                                                 onClick={() => {
                                                     setToDeleteId(a.id);
@@ -133,9 +173,10 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                                 </div>
                             </div>
                         </div>
-                    ))
-                )}
-            </div>
+                    ))}
+                </div>
+            )}
+
             
             {/* EDITING */}
             {editingId && (

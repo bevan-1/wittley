@@ -72,7 +72,7 @@ export default function Home() {
         .limit(1);
 
         if (error || !data || data.length === 0) {
-          setQuestion('Why is there no question for today? Answer: a bug');
+          setQuestion('Uhh...I cant think of a question.');
         } else {
           setQuestion(data[0].question);
           setQuestionId(data[0].id);
@@ -155,7 +155,8 @@ export default function Home() {
     <main className="min-h-screen bg-lavender flex flex-col items-center justify-start p-6 md:p-10 lg:px-24 font-sans">
 
       {/* TODAY'S QUESTION */}
-      <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-center text-gunmetal mt-10 mb-6">
+      <p className="text-2xl sm:text-3xl md:text-4xl font-semibold text-uranian mb-2">Wittle Asks:</p>
+      <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-center text-gunmetal mb-6">
         {displayedText}
         <span className={`inline-block w-[1ch] ${done ? 'animate-blink' : ''}`}>
           |
@@ -177,11 +178,11 @@ export default function Home() {
             }}
             placeholder="Type your answer here..."
             maxLength={maxChars}
-            className="flex-1 rounded-full bg-platinum text-gunmetal placeholder:text-frenchgray px-5 py-3 text-base outline-none focus:ring-2 focus:ring-uranian transition-all duration-300 shadow-sm hover:shadow-md"
+            className="flex-1 rounded-full bg-platinum text-gunmetal placeholder:text-frenchgray px-5 py-3 text-base outline-none focus:ring-2 focus:ring-uranian transition-all duration-300 shadow-md hover:shadow-lg"
           />
           <button
             onClick={handleSubmit}
-            className="bg-uranian hover:bg-[#A1C3FF] text-gunmetal font-semibold px-6 py-3 rounded-full transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] cursor-pointer"
+            className="bg-uranian hover:bg-[#3A87E8] text-lavender font-semibold px-6 py-3 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] cursor-pointer"
           >
             Submit
           </button>

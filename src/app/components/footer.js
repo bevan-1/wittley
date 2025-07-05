@@ -7,7 +7,7 @@ import Link from 'next/link';
 // FOOTER
 export default function Footer() {
     return (
-        <footer className="w-full border-t border-frenchgray bg-frenchgray text-gunmetal mt-12">
+        <footer className="w-full border-t border-frenchgray bg-frenchgray text-lavender mt-12">
             <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col items-center gap-4 text-center">
 
                 {/* SOCIAL LINKS */}
@@ -16,22 +16,22 @@ export default function Footer() {
                         href="https://twitter.com/wittleydaily"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-gunmetal transition duration-200"
+                        className="hover:text-lavender transition duration-200"
                     >
                         <Twitter size={22} />
                     </Link>
                 </div>
 
                 {/* COPYRIGHT */}
-                <p className="text-sm text-gunmetal">
+                <p className="text-sm text-lavender">
                     &copy; {new Date().getFullYear()} Wittley. All rights reserved.
                 </p>
 
                 {/* PRIVACY & TERMS */}
-                <div className="text-sm text-gunmetal space-x-2">
+                <div className="text-sm text-lavender space-x-2">
                     <Link 
                         href="/terms" 
-                        className="hover:underline hover:text-gunmetal"
+                        className="hover:underline hover:text-lavender"
                     >
                         Terms of Service
                     </Link>
