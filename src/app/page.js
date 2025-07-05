@@ -22,6 +22,8 @@ export default function Home() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [answers, setAnswers] = useState([]);
 
+  const [streakCount, setStreakCount] = useState(null);
+
   // ANIMATION SUBMIT
   const [submitted, setSubmitted] = useState(false);
 
@@ -115,6 +117,63 @@ export default function Home() {
     fetchAnswers();
   }, [questionId]);
 
+    // GET STREAK COUNT
+  useEffect(() => {
+    const fetchStreak = async () => {
+      if (!userId) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('streak, last_answered')
+        .eq('id', userId)
+        .single();
+
+      const today = new Date().toISOString().split('T')[0];
+      if (data?.last_answered === today && data.streak > 0) {
+        setStreakCount(data.streak);
+
+        // 4-HOUR WARNING BEFORE LOSING STREAK
+        const now = new Date();
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const msRemaining = endOfDay.getTime() - now.getTime();
+        const hoursRemaining = msRemaining / (1000 * 60 * 60);
+
+        if (data.last_answered !== today && hoursRemaining <= 4 && data.streak > 0) {
+          setFeedback(`⏳ You're ${Math.floor(hoursRemaining)} hours from losing your ${data.streak} day streak. Don’t forget to answer!`);
+        }
+      }
+    };
+    fetchStreak();
+  }, [userId, submitted]);
+
+  // STREAKS
+  const updateStreak = async (userId) => {
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('streak, last_answered')
+      .eq('id', userId)
+      .single();
+    
+    let newStreak = 1;
+    if (profile?.last_answered === yesterdayStr) {
+      newStreak = (profile.streak || 0) + 1;
+    }
+
+    await supabase
+      .from('profiles')
+      .update({
+        streak: newStreak,
+        last_answered: today,
+      })
+      .eq('id', userId);
+  };
+
   // SUBMIT HANDLER
   const handleSubmit = async () => {
     if (!userId) {
@@ -146,6 +205,7 @@ export default function Home() {
       setAnswer('');
       setHasSubmitted(true);
       setSubmitted(true);
+      await updateStreak(userId);
       fetchAnswers();
     }
   };
@@ -162,6 +222,16 @@ export default function Home() {
           |
         </span>
       </h1>
+
+      {streakCount && (
+        <div 
+          className={`mb-4 text-gunmetal text-lg font-semibold text-center transition-all ${
+            submitted ? 'animate-bounce' : ''
+          }`}
+        >
+          🔥 {streakCount} day streak!
+        </div>
+      )}
 
       {/* ANSWER INPUT */}
       {!hasSubmitted && (

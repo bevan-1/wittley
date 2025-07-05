@@ -19,70 +19,108 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
     // ADMIN UID
     const ADMIN_UID = '9cd12f12-a518-47f6-a5ea-3babc6ddc061';
 
-    // TOP 3 ANSWERS
-    const topThree = Array.isArray(answers) ? answers.slice(0, 3) : [];
-    const rest = Array.isArray(answers) ? answers.slice(3) : [];
+    // SORT AND SLICE ANSWERS
+    const sortedAnswers = Array.isArray(answers) ? [...answers].sort((a, b) => (b.likes || 0) - (a.likes || 0)) : [];
+    const topThree = sortedAnswers.slice(0, 3);
+    const rest = sortedAnswers.slice(3);
     const [showAll, setShowAll] = useState(false);
 
     const fetchAnswers = async () => {
-        const sessionRes = await supabase.auth.getSession();
-        const uid = sessionRes.data?.session?.user?.id;
+        await supabase.auth.getSession(); // you don't use uid here, so no need to store it
         onRefresh();
     };
 
-    const handleVote = async (answerId, voteValue) => {
+    const handleLike = async (answerId) => {
         if (!userId) {
-            setFeedback('Please log in to vote.');
+            setFeedback('Please log in to react.');
             return;
         }
-        const { data: existingVote } = await supabase
+        const { data: existingLike } = await supabase
             .from('answer_votes')
-            .select('vote')
+            .select('vote',)
             .eq('user_id', userId)
             .eq('answer_id', answerId)
-            .single();
 
-        let voteAction;
-        if (existingVote) {
-            if (existingVote?.vote === voteValue) {
-                voteAction = await supabase
-                    .from('answer_votes')
-                    .delete()
-                    .eq('user_id', userId)
-                    .eq('answer_id', answerId);
-            } else {
-                voteAction = await supabase
-                    .from('answer_votes')
-                    .update({ vote: voteValue })
-                    .eq('user_id', userId)
-                    .eq('answer_id', answerId);
-            }
+        if (existingLike) {
+            await supabase
+                .from('answer_votes')
+                .delete()
+                .eq('user_id', userId)
+                .eq('answer_id', answerId);
         } else {
-            voteAction = await supabase
+            await supabase
                 .from('answer_votes')
                 .upsert(
-                    { user_id: userId, answer_id: answerId, vote: voteValue },
+                    { user_id: userId, answer_id: answerId, vote: 1 },
                     { onConflict: ['user_id', 'answer_id'] }
                 );
         }
 
-        if (voteAction.error) {
-            setFeedback('Failed to vote. Please try again.');
-            return;
-        }
-
         onRefresh();
     };
+
+    const renderAnswerCard = (a) => (
+        <div
+            key={a.id}
+            onClick={() => setCommentingAnswer(a)}
+            className="bg-white border border-frenchgray rounded-xl p-4 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
+        >
+            <p className="text-base font-medium text-gunmetal mb-4">{a.answer}</p>
+            <div className="text-xs text-frenchgray flex justify-between items-center">
+                <span>{new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <div className="flex items-center gap-3 text-gunmetal">
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleLike(a.id);
+                        }}
+                        className="flex items-center gap-1 px-3 py-1 rounded-full hover:bg-yellow-200 transition group cursor-pointer"
+                    >
+                        <span className="text-xl group-hover:scale-110 transition">🔥</span>
+                        <span className="text-sm font-semibold">{a.likes || 0}</span>
+                    </button>
+
+                    {/* EDITING AND DELETING */}
+                    {(userId === a.user_id || userId === ADMIN_UID) && (
+                        <>
+                            {userId === a.user_id && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingId(a.id);
+                                        setEditedAnswer(a.answer);
+                                    }}
+                                    className="text-blue-500 font-medium cursor-pointer hover:underline"
+                                >
+                                    Edit
+                                </button>
+                            )}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setToDeleteId(a.id);
+                                    setToDeleteAnswer(a.answer);
+                                    setShowConfirm(true);
+                                }}
+                                className="text-red-500 font-medium cursor-pointer hover:underline"
+                            >
+                                Delete
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="w-full max-w-7xl mt-12 mx-auto px-4">
             {feedback && (
                 <p className="text-sm text-red-500 mb-4 text-center">{feedback}</p>
             )}
-            {/* ANSWERS */}
+
             <h2 className="text-2xl text-gunmetal font-bold mb-6 text-center">Answers</h2>
 
-            {/* REFRESH ANSWERS */}
             <div className="flex mb-6">
                 <button
                     onClick={fetchAnswers}
@@ -92,27 +130,11 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                 </button>
             </div>
 
-            {/* TOP 3 ANSWERS */}
             {topThree.length > 0 && (
                 <>
                     <h3 className="text-xl font-bold text-center mb-4 text-uranian">Top Answers</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-                        {topThree.map((a) => (
-                            <div
-                                key={a.id}
-                                onClick={() => setCommentingAnswer(a)}
-                                className="bg-white border border-uranian rounded-xl p-4 shadow-lg hover:scale-[1.02] transition-all cursor-pointer"
-                            >
-                                <p className="text-base font-medium text-gunmetal mg-4">{a.answer}</p>
-                                <div className="text-xs text-frenchgray flex justify-between items-center">
-                                    <span>{new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                    <div className="flex items-center gap-3 text-gunmental">
-                                        <button onClick={() => handleVote(a.id, 1)} className="hover:scale-110 transition">👍</button>
-                                        <span>{a.likes || 0}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                        {topThree.map(renderAnswerCard)}
                     </div>
                 </>
             )}
@@ -121,63 +143,19 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                 <div className="text-center my-6">
                     <button
                         onClick={() => setShowAll(true)}
-                        className="bg-platinum hover:bg:yellow-400 text-gunmetal font-semibold px-6 py-3 rounded-full transition-full transiton-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
+                        className="bg-platinum hover:bg-yellow-400 text-gunmetal font-semibold px-6 py-3 rounded-full transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
                     >
                         Show More Answers
                     </button>
                 </div>
             )}
 
-            {/* REST OF ANSWERS */}
             {showAll && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {rest.map((a) => (
-                    <div
-                        key={a.id}
-                        onClick={() => setCommentingAnswer(a)}
-                        className="bg-white border border-frenchgray rounded-xl p-4 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
-                    >
-                        <p className="text-base font-medium text-gunmetal mb-4">{a.answer}</p>
-                        <div className="text-xs text-frenchgray flex justify-between items-center">
-                            <span>{new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            <div className="flex items-center gap-3 text-gunmetal">
-                                <button onClick={() => handleVote(a.id, 1)} className="hover:scale-110 transition">👍</button>
-                                <span>{a.likes || 0}</span>
-                                <button onClick={() => handleVote(a.id, -1)} className="hover:scale-110 transition">👎</button>
-                                <span>{a.dislikes || 0}</span>
-                                {(userId === a.user_id || userId === ADMIN_UID) && (
-                                    <>
-                                        {userId === a.user_id && (
-                                            <button
-                                                onClick={() => {
-                                                    setEditingId(a.id);
-                                                    setEditedAnswer(a.answer);
-                                                }}
-                                                className="text-blue-500 font-medium"
-                                            >
-                                                Edit
-                                            </button>
-                                        )}
-                                            <button
-                                                onClick={() => {
-                                                    setToDeleteId(a.id);
-                                                    setToDeleteAnswer(a.answer);
-                                                    setShowConfirm(true);
-                                                }}
-                                                className="text-red-500 font-medium"
-                                            >
-                                                Delete
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                    {rest.map(renderAnswerCard)}
                 </div>
             )}
 
-            
             {/* EDITING */}
             {editingId && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -211,7 +189,6 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                                     }
                                     await supabase.from('answers').update({ answer: editedAnswer }).eq('id', editingId);
                                     setEditingId(null);
-                                    const { data } = await supabase.from('answers').select('*').eq('question_id', questionId).order('score', { ascending: false });
                                     onRefresh();
                                 }}
                                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 cursor-pointer"
