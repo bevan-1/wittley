@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://wittley.com
+
+# Sitemaps
+Sitemap: https://wittley.com/sitemap.xml

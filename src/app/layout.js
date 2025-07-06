@@ -52,8 +52,11 @@ export const metadata = {
     index: true,
     follow: true,
   },
-  themeColor: "#FFD331", // Sunburst Yellow
 };
+
+export const viewport = {
+  themeColor: "#FFD331", // Sunburst Yellow
+}
 
 export default function RootLayout({ children }) {
   return (
