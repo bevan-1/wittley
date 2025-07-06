@@ -127,6 +127,9 @@ export default function Signup({ onClose }) {
                         <p className="text-sm text-neutral-600">
                             Once verified, come back here to pick your username.
                         </p>
+                        <p className="text-sm text-neutral-600">
+                            If you don't see the email, check your spam folder.
+                        </p>
                     </div>
                 )}
 
