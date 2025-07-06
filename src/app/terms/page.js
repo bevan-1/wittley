@@ -65,8 +65,8 @@ export default function TermsOfServicePage() {
             <h2 className="text-2xl font-semibold mt-8">11. Contact</h2>
             <p>If you have questions or concerns about these Terms, please contact us at:</p>
             <p><strong>Email:</strong>{' '}
-                <a href="mailto:support@wittley.com" className="text-blue-600 underline">
-                    support@wittley.com
+                <a href="mailto:contact@wittley.com" className="text-blue-600 underline">
+                    contact@wittley.com
                 </a>
             </p>
         </div>
