@@ -120,7 +120,7 @@ export default function Signup({ onClose }) {
                 {step === 2 && (
                     <div className="text-center">
                         <p className="text-lg mb-4">
-                            ✅ Account Created!
+                            ✅ Sent to {email}!
                             <br />
                             You'll have to verify your email by clicking the link sent to your inbox before going any further.
                         </p>

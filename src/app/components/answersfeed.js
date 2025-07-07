@@ -1,12 +1,10 @@
 'use client';
 
-// IMPORTS
-import { useEffect, useState } from "react";
-import { supabase } from "/lib/supabase";
-import CommentPopup from "./comments";
-import { RefreshCcw } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { supabase } from '/lib/supabase';
+import CommentPopup from './comments';
+import { RefreshCcw } from 'lucide-react';
 
-// ANSWER FEED
 export default function AnswersFeed({ questionId, onRefresh, answers, userId }) {
     const [feedback, setFeedback] = useState('');
     const [editingId, setEditingId] = useState(null);
@@ -16,17 +14,17 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
     const [toDeleteAnswer, setToDeleteAnswer] = useState('');
     const [commentingAnswer, setCommentingAnswer] = useState(null);
 
-    // ADMIN UID
     const ADMIN_UID = '9cd12f12-a518-47f6-a5ea-3babc6ddc061';
 
-    // SORT AND SLICE ANSWERS
-    const sortedAnswers = Array.isArray(answers) ? [...answers].sort((a, b) => (b.likes || 0) - (a.likes || 0)) : [];
+    const sortedAnswers = Array.isArray(answers)
+        ? [...answers].sort((a, b) => (b.likes || 0) - (a.likes || 0))
+        : [];
     const topThree = sortedAnswers.slice(0, 3);
     const rest = sortedAnswers.slice(3);
     const [showAll, setShowAll] = useState(false);
 
     const fetchAnswers = async () => {
-        await supabase.auth.getSession(); // you don't use uid here, so no need to store it
+        await supabase.auth.getSession();
         onRefresh();
     };
 
@@ -35,25 +33,36 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
             setFeedback('Please log in to react.');
             return;
         }
-        const { data: existingLike } = await supabase
+
+        // grab a single vote or null
+        const { data: existingLike, error: fetchError } = await supabase
             .from('answer_votes')
-            .select('vote',)
+            .select('vote')
             .eq('user_id', userId)
             .eq('answer_id', answerId)
+            .maybeSingle();
+
+        if (fetchError) {
+            console.error('Error fetching like status:', fetchError);
+            return;
+        }
 
         if (existingLike) {
-            await supabase
+            // user already liked it – remove the vote
+            const { error: deleteError } = await supabase
                 .from('answer_votes')
                 .delete()
                 .eq('user_id', userId)
                 .eq('answer_id', answerId);
+            if (deleteError) console.error('Error deleting like:', deleteError);
         } else {
-            await supabase
+            // not liked yet – insert a new vote
+            const { error: insertError } = await supabase
                 .from('answer_votes')
-                .upsert(
-                    { user_id: userId, answer_id: answerId, vote: 1 },
-                    { onConflict: ['user_id', 'answer_id'] }
-                );
+                .insert([
+                    { user_id: userId, answer_id: answerId, vote: 1 }
+                ]);
+            if (insertError) console.error('Error inserting like:', insertError);
         }
 
         onRefresh();
@@ -69,7 +78,7 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
             <div className="text-xs text-frenchgray flex justify-between items-center">
                 <span>{new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 <div className="flex items-center gap-3 text-gunmetal">
-                    <button 
+                    <button
                         onClick={(e) => {
                             e.stopPropagation();
                             handleLike(a.id);
@@ -79,8 +88,6 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                         <span className="text-xl group-hover:scale-110 transition">🔥</span>
                         <span className="text-sm font-semibold">{a.likes || 0}</span>
                     </button>
-
-                    {/* EDITING AND DELETING */}
                     {(userId === a.user_id || userId === ADMIN_UID) && (
                         <>
                             {userId === a.user_id && (
@@ -156,7 +163,6 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                 </div>
             )}
 
-            {/* EDITING */}
             {editingId && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl">
@@ -187,7 +193,10 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                                         setTimeout(() => setFeedback(''), 3000);
                                         return;
                                     }
-                                    await supabase.from('answers').update({ answer: editedAnswer }).eq('id', editingId);
+                                    await supabase
+                                        .from('answers')
+                                        .update({ answer: editedAnswer })
+                                        .eq('id', editingId);
                                     setEditingId(null);
                                     onRefresh();
                                 }}
@@ -206,7 +215,6 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                 </div>
             )}
 
-            {/* CONFIRM DELETE */}
             {showConfirm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md text-center">
@@ -219,7 +227,10 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                         <div className="flex justify-center gap-4">
                             <button
                                 onClick={async () => {
-                                    await supabase.from('answers').delete().eq('id', toDeleteId);
+                                    await supabase
+                                        .from('answers')
+                                        .delete()
+                                        .eq('id', toDeleteId);
                                     onRefresh((prev) => prev.filter((ans) => ans.id !== toDeleteId));
                                     setShowConfirm(false);
                                 }}
@@ -238,13 +249,12 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                 </div>
             )}
 
-            {/* COMMENTING */}
             {commentingAnswer && (
                 <CommentPopup
                     answer={commentingAnswer}
                     onClose={() => setCommentingAnswer(null)}
                 />
-            )}
+        )}
         </div>
     );
 }

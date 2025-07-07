@@ -121,6 +121,7 @@ export default function Home() {
   useEffect(() => {
     const fetchStreak = async () => {
       if (!userId) return;
+
       const { data } = await supabase
         .from('profiles')
         .select('streak, last_answered')
@@ -128,6 +129,7 @@ export default function Home() {
         .single();
 
       const today = new Date().toISOString().split('T')[0];
+      
       if (data?.last_answered === today && data.streak > 0) {
         setStreakCount(data.streak);
 
