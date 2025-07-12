@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 import Link from "next/link";
 import StreakDisplay from "./streakdisplay";
+import NotificationsBell from "./notifications";
 
 export default function Navbar() {
     const [session, setSession] = useState(null);
@@ -73,13 +74,20 @@ export default function Navbar() {
                 </Link>
 
                 {/* NAV BUTTONS */}
+
+                {/* PROFILE */}
                 {session ? (
-                    <div
-                        id="menu-toggle"
-                        onClick={() => setMenuOpen(!menuOpen)}
-                        className="text-3xl bg-gray-200 rounded-full h-10 w-10 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors"
-                    >
-                        👤
+                    <div className="flex items-center gap-4">
+                        {/* NOTIFICATIONS BELL */}
+                        <NotificationsBell />
+
+                        <div
+                            id="menu-toggle"
+                            onClick={() => setMenuOpen(!menuOpen)}
+                            className="text-3xl bg-gray-200 rounded-full h-10 w-10 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors"
+                        >
+                            👤
+                        </div>
                     </div>
                 ) : (
                     <a

@@ -5,16 +5,25 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import FollowButton from '../components/follow'
+import FollowersPopup from '../components/followerspopup'
 
 // PROFILE PAGE
 export default function ProfilePage() {
-    const pathname = usePathname()
-    const username = pathname?.split('/')?.[1] || ''
-    const [profile, setProfile] = useState(null)
-    const [answers, setAnswers] = useState([])
-    const [sessionUserId, setSessionUserId] = useState(null)
-    const [loading, setLoading] = useState(true)
+    // CONSTS
+    const pathname = usePathname();
+    const username = pathname?.split('/')?.[1] || '';
+    const [profile, setProfile] = useState(null);
+    const [answers, setAnswers] = useState([]);
+    const [sessionUserId, setSessionUserId] = useState(null);
+    const [loading, setLoading] = useState(true);
 
+    // FOLLOWING
+    const [followerCount, setFollowerCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
+    const [showPopup, setShowPopup] = useState(null);  
+
+    // RESERVED NAMES
     const RESERVED_ROUTES = ['admin', 'login', 'signup', 'about', 'settings', 'terms', 'privacy']
 
     // FETCH USER DATA + ANSWERS
@@ -56,10 +65,34 @@ export default function ProfilePage() {
 
             setAnswers(answersData || [])
             setLoading(false)
-        }
 
-        fetchData()
-    }, [username])
+            // FOLLOWER AND FOLLOWING 
+            const userRes = await supabase
+                .from('profiles')
+                .select('id, username, created_at, streak')
+                .eq('username', username)
+                .single();
+
+            setProfile(userRes.data);
+
+            // FETCH FOLLOWERS
+            const { count: followersCount } = await supabase
+                .from('follows')
+                .select('*', { count: 'exact', head: true })
+                .eq('following_id', userRes.data.id);
+
+            // FETCH FOLLOWING
+            const { count: followingCount } = await supabase
+                .from('follows')
+                .select('*', { count: 'exact', head: true })
+                .eq('follower_id', userRes.data.id);
+            
+            setFollowerCount(followersCount || 0);
+            setFollowingCount(followingCount || 0);
+        };
+
+        fetchData();
+    }, [username]);
 
     if (loading) {
         return <p className="text-center mt-10 text-xl">Loading profile...</p>
@@ -79,17 +112,26 @@ export default function ProfilePage() {
     return (
         <div className="bg-[#f4f0ff] min-h-screen px-6 py-10">
             {/* TOP PROFILE SECTION */}
-            <div className="max-w-4xl mx-auto bg-white rounded-2xl p-6 shadow-md flex items-center justify-between gap-6">
+            <div className="max-w-4xl mx-auto bg-white rounded-2xl p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 {/* PROFILE PICTURE */}
-                <div className="text-4xl bg-gray-300 rounded-full h-16 w-16 flex items-center justify-center">
+                <div className="text-4xl bg-gray-300 rounded-full h-16 w-16 flex items-center justify-center self-start sm:self-auto">
                     👤
                 </div>
 
                 {/* USER INFO */}
-                <div className="flex flex-col gap-1 flex-1">
+                <div className="flex-1 flex flex-col gap-1">
                     <h1 className="text-2xl font-bold text-jetblack">@{profile.username}</h1>
-                    <p className="text-sm text-gray-500">123 followers</p>
-                    <div className="mt-1 flex items-center gap-2">
+                    
+                    {/* FOLLOW, STREAKS, BADGES */}
+                    <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-700">
+                        {/* FOLLOWERS/FOLLOWING */}
+                        <button onClick={() => setShowPopup('followers')} className='hover:underline cursor-pointer'>
+                            <strong>{followerCount}</strong> Followers
+                        </button>
+                        <button onClick={() => setShowPopup('following')} className='hover:underline cursor-pointer'>
+                            <strong>{followingCount}</strong> Following
+                        </button>
+
                         {/* STREAK BADGE */}
                         <span className="inline-flex items-center gap-1 bg-red-500/20 text-red-600 text-xs px-3 py-[3px] rounded-full font-semibold transition-transform hover:scale-105 cursor-default select-none">
                             🔥 {profile.streak || 0}
@@ -107,20 +149,18 @@ export default function ProfilePage() {
                 </div>
 
                 {/* SETTINGS OR FOLLOW BUTTON */}
-                {isOwnProfile ? (
-                    <Link
-                        href="/settings"
-                        className="text-sm px-5 py-3 rounded-full bg-gray-500/30 text-gray-900 hover:bg-gray-500/20 transition cursor-pointer select-none"
-                    >
-                        ⚙️ Settings
-                    </Link>
-                ) : (
-                    <button
-                        className="text-sm px-5 py-3 rounded-full bg-yellow-300 text-gray-900 hover:bg-yellow-400 transition cursor-pointer select-none"
-                    >
-                        ➕ Follow
-                    </button>
-                )}
+                <div className="self-start sm:self-auto">
+                    {isOwnProfile ? (
+                        <Link
+                            href="/settings"
+                            className="text-sm px-5 py-3 rounded-full bg-gray-500/30 text-gray-900 hover:bg-gray-500/20 transition cursor-pointer select-none"
+                        >
+                            ⚙️ Settings
+                        </Link>
+                    ) : (
+                        <FollowButton targetUserId={profile.id} />
+                    )}
+                </div>
             </div>
 
             {/* TOP ANSWERS */}
@@ -150,6 +190,14 @@ export default function ProfilePage() {
                     </div>
                 )}
             </div>
+
+            {showPopup && (
+                <FollowersPopup
+                    userId={profile.id}
+                    type={showPopup}
+                    onClose={() => setShowPopup(null)}
+                />
+            )}
         </div>
     )
 }

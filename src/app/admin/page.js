@@ -6,6 +6,7 @@ import { supabase } from '../../../lib/supabase';
 import ScheduleQuestion from '../components/schedulequestions';
 import PastQuestions from '../components/pastquestions';
 import UserManagement from '../components/usermanagement';
+import GlobalAlerts from '../components/globalalerts';
 
 export default function AdminPanel() {
     // CONSTS
@@ -18,6 +19,7 @@ export default function AdminPanel() {
         { key: 'schedule', label: '🗓️ Schedule Questions' },
         { key: 'past', label: '📜 Past Questions' },
         { key: 'users', label: '👤 User Management' },
+        { key: 'alerts', label: '📣 Global Alerts'}
     ];
 
     // ADMIN UID
@@ -88,6 +90,7 @@ export default function AdminPanel() {
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
                 {tab === 'schedule' && <ScheduleQuestion />}
                 {tab === 'past' && <PastQuestions />}
+                {tab === 'alerts' && <GlobalAlerts />}
                 {tab === 'users' && <UserManagement />}
             </div>
         </div>

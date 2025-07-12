@@ -210,6 +210,20 @@ export default function Home() {
       await updateStreak(userId);
       fetchAnswers();
     }
+
+    // GET FOLLOWERS
+    const { data: followers } = await supabase
+      .from('follows')
+      .select('follower_id')
+      .eq('follower_id', currentUserId);
+
+    const inserts = followers.map(f => ({
+      user_id: f.follower_id,
+      message: `@${username} answers today's question`,
+      link: `/`
+    }));
+
+    await supabase.from('notifications').insert(inserts);
   };
 
 
