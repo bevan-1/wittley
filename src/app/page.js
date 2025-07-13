@@ -101,7 +101,7 @@ export default function Home() {
 
       const { data } = await supabase
         .from('answers')
-        .select('id, answer, created_at, likes, dislikes, score, user_id')
+        .select('id, answer, created_at, likes, dislikes, score, user_id, profiles(username)')
         .eq('question_id', questionId)
         .order('score', { ascending: false })
         .order('created_at', { ascending: false });
@@ -215,7 +215,7 @@ export default function Home() {
     const { data: followers } = await supabase
       .from('follows')
       .select('follower_id')
-      .eq('follower_id', currentUserId);
+      .eq('follower_id', userId);
 
     const inserts = followers.map(f => ({
       user_id: f.follower_id,

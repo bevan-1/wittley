@@ -6,7 +6,7 @@ import { supabase } from '../../../lib/supabase';
 import Link from 'next/link';
 
 export default function NotificationsBell() {
-    // STATE
+    // CONSTS
     const [notifications, setNotifications] = useState([]);
     const [open, setOpen] = useState(false);
     const [unread, setUnread] = useState(false);
@@ -25,6 +25,16 @@ export default function NotificationsBell() {
         const offset = refresh ? 0 : notifications.length;
 
         setLoading(true);
+
+        // DELETE OLD NOTIFICATIONS FROM PREVIOUS DAYS
+        const today = new Date().toISOString().split('T')[0];
+        await supabase
+            .from('notifications')
+            .delete()
+            .lt('created_at', `${today}T00:00:00`)
+            .eq('user_id', userId);
+
+        // FETCH NOTIFICATIONS
         const { data } = await supabase
             .from('notifications')
             .select('*')
@@ -76,7 +86,7 @@ export default function NotificationsBell() {
         setUnread(prev => notifications.some(n => !n.seen && !ids.includes(n.id)));
     };
 
-    // GROUP SIMILAR NOTIFICATIONS
+    // GROUP SIMILAR NOTIFICATIONS BY MESSAGE TYPE
     const grouped = {};
     notifications.forEach(n => {
         const match = n.message.match(/^@[\w\d_-]+ (.+)$/);
@@ -102,7 +112,7 @@ export default function NotificationsBell() {
                 )}
             </button>
 
-            {/* DROPDOWN CONTAINER */}
+            {/* NOTIFICATION DROPDOWN */}
             {open && (
                 <div
                     ref={scrollRef}
@@ -116,13 +126,13 @@ export default function NotificationsBell() {
                         <div className="text-sm text-gray-500 text-center p-4">NO NOTIFICATIONS</div>
                     )}
 
-                    {/* GROUPED NOTIFICATION RENDERING */}
+                    {/* RENDER GROUPED NOTIFICATIONS */}
                     {Object.entries(grouped).map(([msg, group]) => {
                         const seen = group.every(n => n.seen);
-                        const firstLink = group[0].link || '#';
                         const ids = group.map(n => n.id);
+                        const isExpanded = expanded[msg];
 
-                        // IF ONLY ONE ENTRY, RENDER NORMALLY
+                        // RENDER SINGLE NOTIFICATION
                         if (group.length === 1) {
                             const n = group[0];
                             return (
@@ -139,13 +149,13 @@ export default function NotificationsBell() {
                             );
                         }
 
-                        // MULTIPLE USERS POSTED SAME TYPE OF UPDATE
-                        const isExpanded = expanded[msg];
-
+                        // RENDER EXPANDABLE GROUP NOTIFICATION
                         return (
                             <div key={msg} className="border-b border-gray-100">
                                 <div
-                                    onClick={() => setExpanded(prev => ({ ...prev, [msg]: !prev[msg] }))}
+                                    onClick={() =>
+                                        setExpanded(prev => ({ ...prev, [msg]: !prev[msg] }))
+                                    }
                                     className={`block px-4 py-3 text-sm cursor-pointer hover:bg-gray-100 transition ${
                                         seen ? 'text-gray-600' : 'text-black font-semibold'
                                     }`}
@@ -160,7 +170,8 @@ export default function NotificationsBell() {
                                 {isExpanded && (
                                     <div className="px-4 pb-2">
                                         {group.map(n => {
-                                            const username = n.message.match(/^@([\w\d_-]+)/)?.[1] || 'Someone';
+                                            const username =
+                                                n.message.match(/^@([\w\d_-]+)/)?.[1] || 'Someone';
                                             return (
                                                 <Link
                                                     key={n.id}

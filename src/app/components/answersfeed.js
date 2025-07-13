@@ -76,7 +76,16 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
         >
             <p className="text-base font-medium text-gunmetal mb-4">{a.answer}</p>
             <div className="text-xs text-frenchgray flex justify-between items-center">
-                <span>{new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <div className="flex flex-col gap-1">
+                    <span className="text-xs text-frenchgray">
+                        {new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    {a.profiles?.username && (
+                        <span className="text-xs text-blue-600 font-semibold hover:under cursor-pointer">
+                            @{a.profliles.username}
+                        </span>
+                    )}
+                </div>
                 <div className="flex items-center gap-3 text-gunmetal">
                     <button
                         onClick={(e) => {

@@ -37,7 +37,7 @@ export default function Navbar() {
             if (profile?.last_answered === today && profile.streak > 0) {
                 setStreak(profile.streak);
             } else {
-                setStreak(profile?.streak || 0);
+                setStreak(0);
             }
         };
 
