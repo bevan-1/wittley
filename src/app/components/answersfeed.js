@@ -80,10 +80,12 @@ export default function AnswersFeed({ questionId, onRefresh, answers, userId }) 
                     <span className="text-xs text-frenchgray">
                         {new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    {a.profiles?.username && (
+                    {a.profiles?.username ? (
                         <span className="text-xs text-blue-600 font-semibold hover:under cursor-pointer">
-                            @{a.profliles.username}
+                            @{a.profiles.username}
                         </span>
+                    ) : (
+                        <span className="text-xs text-frenchgray italic">Unknown user</span>
                     )}
                 </div>
                 <div className="flex items-center gap-3 text-gunmetal">
